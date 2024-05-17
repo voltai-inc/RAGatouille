@@ -11,11 +11,11 @@ import torch
 from colbert import Trainer
 from colbert.infra import ColBERTConfig, Run, RunConfig
 from colbert.modeling.checkpoint import Checkpoint
-
 from ragatouille.models.base import LateInteractionModel
 from ragatouille.models.index import ModelIndex, ModelIndexFactory
 
 # TODO: Move all bsize related calcs to `_set_bsize()`
+search_pool = {}
 
 
 class ColBERT(LateInteractionModel):
@@ -63,7 +63,7 @@ class ColBERT(LateInteractionModel):
             # TODO: Modify root assignment when loading from HF
 
         else:
-            self.index_root = index_root if index_root is not None else ".ragatouille/"
+            self.index_root = index_root if index_root is not None else "experiments/"
             ckpt_config = ColBERTConfig.load_from_checkpoint(
                 str(pretrained_model_name_or_path)
             )

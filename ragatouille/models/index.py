@@ -9,10 +9,10 @@ import torch
 from colbert import Indexer, IndexUpdater, Searcher
 from colbert.indexing.collection_indexer import CollectionIndexer
 from colbert.infra import ColBERTConfig
-
 from ragatouille.models import torch_kmeans
 
 IndexType = Literal["FLAT", "HNSW", "PLAID"]
+search_pool = {}
 
 
 class ModelIndex(ABC):
@@ -34,8 +34,7 @@ class ModelIndex(ABC):
         overwrite: Union[bool, str] = "reuse",
         verbose: bool = True,
         **kwargs,
-    ) -> "ModelIndex":
-        ...
+    ) -> "ModelIndex": ...
 
     @staticmethod
     @abstractmethod
@@ -45,8 +44,7 @@ class ModelIndex(ABC):
         index_config: dict[str, Any],
         config: ColBERTConfig,
         verbose: bool = True,
-    ) -> "ModelIndex":
-        ...
+    ) -> "ModelIndex": ...
 
     @abstractmethod
     def build(
@@ -56,8 +54,7 @@ class ModelIndex(ABC):
         index_name: Optional["str"] = None,
         overwrite: Union[bool, str] = "reuse",
         verbose: bool = True,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @abstractmethod
     def search(
@@ -72,16 +69,13 @@ class ModelIndex(ABC):
         pids: Optional[List[int]] = None,
         force_reload: bool = False,
         **kwargs,
-    ) -> list[tuple[list, list, list]]:
-        ...
+    ) -> list[tuple[list, list, list]]: ...
 
     @abstractmethod
-    def _search(self, query: str, k: int, pids: Optional[List[int]] = None):
-        ...
+    def _search(self, query: str, k: int, pids: Optional[List[int]] = None): ...
 
     @abstractmethod
-    def _batch_search(self, query: list[str], k: int):
-        ...
+    def _batch_search(self, query: list[str], k: int): ...
 
     @abstractmethod
     def add(
@@ -94,8 +88,7 @@ class ModelIndex(ABC):
         new_collection: List[str],
         verbose: bool = True,
         **kwargs,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @abstractmethod
     def delete(
@@ -106,12 +99,10 @@ class ModelIndex(ABC):
         index_name: str,
         pids_to_remove: Union[TypeVar("T"), List[TypeVar("T")]],
         verbose: bool = True,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @abstractmethod
-    def _export_config(self) -> dict[str, Any]:
-        ...
+    def _export_config(self) -> dict[str, Any]: ...
 
     def export_metadata(self) -> dict[str, Any]:
         config = self._export_config()
@@ -174,11 +165,11 @@ class PLAIDModelIndex(ModelIndex):
         bsize = kwargs.get("bsize", PLAIDModelIndex._DEFAULT_INDEX_BSIZE)
         assert isinstance(bsize, int)
 
-        nbits = 2
-        if len(collection) < 5000:
-            nbits = 8
-        elif len(collection) < 10000:
-            nbits = 4
+        nbits = 8
+        # if len(collection) < 5000:
+        #     nbits = 8
+        # elif len(collection) < 10000:
+        #     nbits = 4
         self.config = ColBERTConfig.from_existing(
             self.config, ColBERTConfig(nbits=nbits, index_bsize=bsize)
         )
@@ -262,6 +253,11 @@ class PLAIDModelIndex(ModelIndex):
         index_name: Optional[str],
         force_fast: bool = False,
     ):
+
+        if index_name is not None and index_name in search_pool:
+            self.searcher = search_pool.get(index_name)
+            return
+
         print(
             f"Loading searcher for index {index_name} for the first time...",
             "This may take a few seconds",
@@ -290,6 +286,7 @@ class PLAIDModelIndex(ModelIndex):
             self.searcher.configure(centroid_score_threshold=0.5)
             self.searcher.configure(ndocs=256)
 
+        search_pool[index_name] = self.searcher
         print("Searcher loaded!")
 
     def _search(self, query: str, k: int, pids: Optional[List[int]] = None):
