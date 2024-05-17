@@ -5,13 +5,15 @@ from uuid import uuid4
 from langchain.retrievers.document_compressors.base import BaseDocumentCompressor
 from langchain_core.retrievers import BaseRetriever
 
-from ragatouille.data.corpus_processor import CorpusProcessor
-from ragatouille.data.preprocessors import llama_index_sentence_splitter
-from ragatouille.integrations import (
+from rag.ColBERT.RAGatouille.ragatouille.data.corpus_processor import CorpusProcessor
+from rag.ColBERT.RAGatouille.ragatouille.data.preprocessors import (
+    llama_index_sentence_splitter,
+)
+from rag.ColBERT.RAGatouille.ragatouille.integrations import (
     RAGatouilleLangChainCompressor,
     RAGatouilleLangChainRetriever,
 )
-from ragatouille.models import ColBERT, LateInteractionModel
+from rag.ColBERT.RAGatouille.ragatouille.models import ColBERT, LateInteractionModel
 
 
 class RAGPretrainedModel:

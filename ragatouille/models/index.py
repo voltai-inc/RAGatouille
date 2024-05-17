@@ -9,7 +9,8 @@ import torch
 from colbert import Indexer, IndexUpdater, Searcher
 from colbert.indexing.collection_indexer import CollectionIndexer
 from colbert.infra import ColBERTConfig
-from ragatouille.models import torch_kmeans
+
+from rag.ColBERT.RAGatouille.ragatouille.models import torch_kmeans
 
 IndexType = Literal["FLAT", "HNSW", "PLAID"]
 search_pool = {}

@@ -11,8 +11,11 @@ import torch
 from colbert import Trainer
 from colbert.infra import ColBERTConfig, Run, RunConfig
 from colbert.modeling.checkpoint import Checkpoint
-from ragatouille.models.base import LateInteractionModel
-from ragatouille.models.index import ModelIndex, ModelIndexFactory
+
+from rag.ColBERT.RAGatouille.ragatouille.models.base import \
+    LateInteractionModel
+from rag.ColBERT.RAGatouille.ragatouille.models.index import (
+    ModelIndex, ModelIndexFactory)
 
 # TODO: Move all bsize related calcs to `_set_bsize()`
 search_pool = {}

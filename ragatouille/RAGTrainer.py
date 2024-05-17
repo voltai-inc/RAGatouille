@@ -3,10 +3,13 @@ from typing import Literal, Optional, Union
 
 from colbert.infra import ColBERTConfig
 
-from ragatouille.data import TrainingDataProcessor
-from ragatouille.models import ColBERT, LateInteractionModel
-from ragatouille.negative_miners import HardNegativeMiner, SimpleMiner
-from ragatouille.utils import seeded_shuffle
+from rag.ColBERT.RAGatouille.ragatouille.data import TrainingDataProcessor
+from rag.ColBERT.RAGatouille.ragatouille.models import ColBERT, LateInteractionModel
+from rag.ColBERT.RAGatouille.ragatouille.negative_miners import (
+    HardNegativeMiner,
+    SimpleMiner,
+)
+from rag.ColBERT.RAGatouille.ragatouille.utils import seeded_shuffle
 
 
 class RAGTrainer:
@@ -54,7 +57,8 @@ class RAGTrainer:
         Manually export the training data processed by prepare_training_data to a given path.
 
         Parameters:
-            path: Union[str, Path] - Path to the directory where the data will be exported."""
+            path: Union[str, Path] - Path to the directory where the data will be exported.
+        """
         self.data_processor.export_training_data(path)
 
     def _add_to_collection(self, content: Union[str, list, dict]):
@@ -229,9 +233,11 @@ class RAGTrainer:
             doc_maxlen=doc_maxlen,
             relu=use_relu,
             accumsteps=accumsteps,
-            warmup=int(total_triplets // batch_size * 0.1)
-            if warmup_steps == "auto"
-            else warmup_steps,
+            warmup=(
+                int(total_triplets // batch_size * 0.1)
+                if warmup_steps == "auto"
+                else warmup_steps
+            ),
             save_every=int(total_triplets // batch_size // 10),
         )
 
