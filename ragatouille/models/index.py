@@ -1,7 +1,9 @@
 import time
 from abc import ABC, abstractmethod
+from collections import OrderedDict
 from copy import deepcopy
 from pathlib import Path
+from time import time
 from typing import Any, List, Literal, Optional, TypeVar, Union
 
 import srsly
@@ -13,7 +15,34 @@ from colbert.infra import ColBERTConfig
 from rag.ColBERT.RAGatouille.ragatouille.models import torch_kmeans
 
 IndexType = Literal["FLAT", "HNSW", "PLAID"]
-search_pool = {}
+
+
+class LRUCache:
+    def __init__(self, capacity: int, ttl: int):
+        self.capacity = capacity
+        self.cache = OrderedDict()
+        self.ttl = ttl
+
+    def get(self, key: str):
+        if key not in self.cache:
+            return None
+        value, timestamp = self.cache.pop(key)
+        if time() - timestamp > self.ttl:
+            return None
+        self.cache[key] = (value, timestamp)
+        return value
+
+    def put(self, key: str, value: Any):
+        if key in self.cache:
+            self.cache.pop(key)
+        elif len(self.cache) >= self.capacity:
+            self.cache.popitem(last=False)
+        self.cache[key] = (value, time())
+
+
+search_pool = LRUCache(
+    3, 86400
+)  # Kick out all indices after 24 hours (86400 seconds) to keep cache fresh
 
 
 class ModelIndex(ABC):
@@ -255,40 +284,39 @@ class PLAIDModelIndex(ModelIndex):
         force_fast: bool = False,
     ):
 
-        if index_name is not None and index_name in search_pool:
-            self.searcher = search_pool.get(index_name)
-            return
+        self.searcher = search_pool.get(index_name)
 
-        print(
-            f"Loading searcher for index {index_name} for the first time...",
-            "This may take a few seconds",
-        )
-        self.searcher = Searcher(
-            checkpoint=checkpoint,
-            config=None,
-            collection=collection,
-            index_root=self.config.root,
-            index=index_name,
-        )
+        if self.searcher is None:
+            print(
+                f"Loading searcher for index {index_name} for the first time...",
+                "This may take a few seconds",
+            )
+            self.searcher = Searcher(
+                checkpoint=checkpoint,
+                config=None,
+                collection=collection,
+                index_root=self.config.root,
+                index=index_name,
+            )
 
-        if not force_fast:
-            self.searcher.configure(ndocs=1024)
-            self.searcher.configure(ncells=16)
-            if len(self.searcher.collection) < 10000:
-                self.searcher.configure(ncells=8)
-                self.searcher.configure(centroid_score_threshold=0.4)
-            elif len(self.searcher.collection) < 100000:
-                self.searcher.configure(ncells=4)
-                self.searcher.configure(centroid_score_threshold=0.45)
-            # Otherwise, use defaults for k
-        else:
-            # Use fast settingss
-            self.searcher.configure(ncells=1)
-            self.searcher.configure(centroid_score_threshold=0.5)
-            self.searcher.configure(ndocs=256)
+            if not force_fast:
+                self.searcher.configure(ndocs=1024)
+                self.searcher.configure(ncells=16)
+                if len(self.searcher.collection) < 10000:
+                    self.searcher.configure(ncells=8)
+                    self.searcher.configure(centroid_score_threshold=0.4)
+                elif len(self.searcher.collection) < 100000:
+                    self.searcher.configure(ncells=4)
+                    self.searcher.configure(centroid_score_threshold=0.45)
+                # Otherwise, use defaults for k
+            else:
+                # Use fast settingss
+                self.searcher.configure(ncells=1)
+                self.searcher.configure(centroid_score_threshold=0.5)
+                self.searcher.configure(ndocs=256)
 
-        search_pool[index_name] = self.searcher
-        print("Searcher loaded!")
+            search_pool.put(index_name, self.searcher)
+            print("Searcher loaded!")
 
     def _search(self, query: str, k: int, pids: Optional[List[int]] = None):
         assert self.searcher is not None
