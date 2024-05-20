@@ -12,13 +12,14 @@ from colbert import Trainer
 from colbert.infra import ColBERTConfig, Run, RunConfig
 from colbert.modeling.checkpoint import Checkpoint
 
-from rag.ColBERT.RAGatouille.ragatouille.models.base import \
-    LateInteractionModel
+from rag.ColBERT.RAGatouille.ragatouille.models.base import LateInteractionModel
 from rag.ColBERT.RAGatouille.ragatouille.models.index import (
-    ModelIndex, ModelIndexFactory)
+    ModelIndex,
+    ModelIndexFactory,
+)
 
 # TODO: Move all bsize related calcs to `_set_bsize()`
-search_pool = {}
+lru_search_pool = {}
 
 
 class ColBERT(LateInteractionModel):
