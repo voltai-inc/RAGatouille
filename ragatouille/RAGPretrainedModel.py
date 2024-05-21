@@ -69,8 +69,8 @@ class RAGPretrainedModel:
         """
         instance = cls()
         instance.model = ColBERT(
-            pretrained_model_name_or_path,
-            n_gpu,
+            pretrained_model_name_or_path=pretrained_model_name_or_path,
+            n_gpu=n_gpu,
             index_root=index_root,
             verbose=verbose,
             experiment=experiment,
