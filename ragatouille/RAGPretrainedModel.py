@@ -50,6 +50,7 @@ class RAGPretrainedModel:
     @classmethod
     def from_pretrained(
         cls,
+        experiment: str,
         pretrained_model_name_or_path: Union[str, Path],
         n_gpu: int = -1,
         verbose: int = 1,
@@ -68,7 +69,11 @@ class RAGPretrainedModel:
         """
         instance = cls()
         instance.model = ColBERT(
-            pretrained_model_name_or_path, n_gpu, index_root=index_root, verbose=verbose
+            pretrained_model_name_or_path,
+            n_gpu,
+            index_root=index_root,
+            verbose=verbose,
+            experiment=experiment,
         )
         return instance
 

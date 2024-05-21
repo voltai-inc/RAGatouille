@@ -22,6 +22,7 @@ class ColBERT(LateInteractionModel):
     def __init__(
         self,
         pretrained_model_name_or_path: Union[str, Path],
+        experiment: str,
         n_gpu: int = -1,
         index_name: Optional[str] = None,
         verbose: int = 1,
@@ -68,7 +69,7 @@ class ColBERT(LateInteractionModel):
                 str(pretrained_model_name_or_path)
             )
             self.run_config = RunConfig(
-                nranks=n_gpu, experiment="colbert", root=self.index_root
+                nranks=n_gpu, experiment=experiment, root=self.index_root
             )
             local_config = ColBERTConfig(**kwargs)
             self.config = ColBERTConfig.from_existing(
@@ -77,7 +78,7 @@ class ColBERT(LateInteractionModel):
             )
             self.checkpoint = pretrained_model_name_or_path
             self.index_name = index_name
-            self.config.experiment = "colbert"
+            self.config.experiment = experiment
             self.config.root = self.index_root
 
         if not training_mode:
