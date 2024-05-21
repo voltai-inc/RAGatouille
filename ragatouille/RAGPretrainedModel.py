@@ -5,15 +5,15 @@ from uuid import uuid4
 from langchain.retrievers.document_compressors.base import BaseDocumentCompressor
 from langchain_core.retrievers import BaseRetriever
 
-from rag.ColBERT.RAGatouille.ragatouille.data.corpus_processor import CorpusProcessor
-from rag.ColBERT.RAGatouille.ragatouille.data.preprocessors import (
+from RAGatouille.ragatouille.data.corpus_processor import CorpusProcessor
+from RAGatouille.ragatouille.data.preprocessors import (
     llama_index_sentence_splitter,
 )
-from rag.ColBERT.RAGatouille.ragatouille.integrations import (
+from RAGatouille.ragatouille.integrations import (
     RAGatouilleLangChainCompressor,
     RAGatouilleLangChainRetriever,
 )
-from rag.ColBERT.RAGatouille.ragatouille.models import ColBERT, LateInteractionModel
+from RAGatouille.ragatouille.models import ColBERT, LateInteractionModel
 
 
 class RAGPretrainedModel:
@@ -53,6 +53,7 @@ class RAGPretrainedModel:
     @classmethod
     def from_pretrained(
         cls,
+        experiment: str, 
         pretrained_model_name_or_path: Union[str, Path],
         n_gpu: int = -1,
         verbose: int = 1,
@@ -71,7 +72,7 @@ class RAGPretrainedModel:
         """
         instance = cls()
         instance.model = ColBERT(
-            pretrained_model_name_or_path, n_gpu, index_root=index_root, verbose=verbose
+            pretrained_model_name_or_path, n_gpu, index_root=index_root, verbose=verbose, experiment=experiment
         )
         return instance
 
