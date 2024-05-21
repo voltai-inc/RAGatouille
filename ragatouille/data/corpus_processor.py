@@ -1,9 +1,7 @@
 from typing import Callable, List, Optional, Union
 from uuid import uuid4
 
-from rag.ColBERT.RAGatouille.ragatouille.data.preprocessors import (
-    llama_index_sentence_splitter,
-)
+from RAGatouille.ragatouille.data.preprocessors import llama_index_sentence_splitter
 
 
 class CorpusProcessor:
