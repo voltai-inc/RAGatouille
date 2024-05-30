@@ -38,6 +38,12 @@ class LRUCache:
             self.cache.popitem(last=False)
         self.cache[key] = (value, time())
 
+    def remove(self, key:str):
+        del self.cache[key]
+
+    def clear_cache(self):
+        self.cache.clear()
+
 
 search_pool = LRUCache(
     3, 86400
@@ -283,11 +289,14 @@ class PLAIDModelIndex(ModelIndex):
         force_fast: bool = False,
     ):
 
-        self.searcher = search_pool.get(index_name)
+        org = self.config.root.split("/")[-2]
+        index_key = f"{org}-{index_name}"
+
+        self.searcher = search_pool.get(index_key)
 
         if self.searcher is None:
             print(
-                f"Loading searcher for index {index_name} for the first time...",
+                f"Loading searcher for index {index_key} for the first time...",
                 "This may take a few seconds",
             )
             self.searcher = Searcher(
@@ -314,7 +323,7 @@ class PLAIDModelIndex(ModelIndex):
                 self.searcher.configure(centroid_score_threshold=0.5)
                 self.searcher.configure(ndocs=256)
 
-            search_pool.put(index_name, self.searcher)
+            search_pool.put(index_key, self.searcher)
             print("Searcher loaded!")
 
     def _search(self, query: str, k: int, pids: Optional[List[int]] = None):
@@ -538,3 +547,30 @@ class ModelIndexFactory:
         return ModelIndexFactory._MODEL_INDEX_BY_NAME[
             ModelIndexFactory._raise_if_invalid_index_type(index_config["index_type"])  # type: ignore
         ].load_from_file(index_path, index_name, index_config, config, verbose)
+
+
+    def load_from_file(
+        index_path: str,
+        index_name: Optional[str],
+        config: ColBERTConfig,
+        verbose: bool = True,
+    ) -> ModelIndex:
+        metadata = srsly.read_json(index_path + "/metadata.json")
+        try:
+            index_config = metadata["RAGatouille"]["index_config"]  # type: ignore
+        except KeyError:
+            if verbose:
+                print(
+                    f"Constructing default index configuration for index `{index_name}` as it does not contain RAGatouille specific metadata."
+                )
+            index_config = {
+                "index_type": "PLAID",
+                "index_name": index_name,
+            }
+        index_name = (
+            index_name if index_name is not None else index_config["index_name"]  # type: ignore
+        )
+        return ModelIndexFactory._MODEL_INDEX_BY_NAME[
+            ModelIndexFactory._raise_if_invalid_index_type(index_config["index_type"])  # type: ignore
+        ].load_from_file(index_path, index_name, index_config, config, verbose)
+
