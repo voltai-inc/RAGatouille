@@ -129,7 +129,7 @@ class ColBERT(LateInteractionModel):
         new_docid_metadata_map: Optional[List[dict]] = None,
         index_name: Optional[str] = None,
         bsize: int = 32,
-        use_faiss: bool = False,
+        use_faiss: bool = True,
     ):
         self.index_name = index_name if index_name is not None else self.index_name
         if self.index_name is None:
@@ -300,7 +300,7 @@ class ColBERT(LateInteractionModel):
         max_document_length: int = 256,
         overwrite: Union[bool, str] = "reuse",
         bsize: int = 32,
-        use_faiss: bool = False,
+        use_faiss: bool = True,
     ):
         self.collection = collection
         self.config.doc_maxlen = max_document_length

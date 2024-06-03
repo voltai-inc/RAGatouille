@@ -184,7 +184,7 @@ class RAGPretrainedModel:
         document_splitter_fn: Optional[Callable] = llama_index_sentence_splitter,
         preprocessing_fn: Optional[Union[Callable, list[Callable]]] = None,
         bsize: int = 32,
-        use_faiss: bool = False,
+        use_faiss: bool = True,
     ):
         """Build an index from a list of documents.
 
@@ -233,7 +233,7 @@ class RAGPretrainedModel:
         document_splitter_fn: Optional[Callable] = llama_index_sentence_splitter,
         preprocessing_fn: Optional[Union[Callable, list[Callable]]] = None,
         bsize: int = 32,
-        use_faiss: bool = False,
+        use_faiss: bool = True,
     ):
         """Add documents to an existing index.
 
